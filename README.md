@@ -10,6 +10,12 @@ InApp,
 InRedis,
 or implement your own custom strategy.
 ```
+Init a strategy and use it in Cache function as -
+```go
+strategy := NewInApp()
+res, err := Cache(ctx, key, strategy, fn, args...)
+```
+see `examples_test.go`
 
 License
 ----------------
