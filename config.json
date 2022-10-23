@@ -1,0 +1,10 @@
+{
+  "fn": {
+    "enabled": true,
+    "ttlInSeconds": 3600
+  },
+  "fn2": {
+    "enabled": false,
+    "ttlInSeconds": 600
+  }
+}
