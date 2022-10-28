@@ -13,14 +13,16 @@ func TestInApp(t *testing.T) {
 	inApp := NewInApp()
 	res, err := Cache(ctx, key, inApp, fn, "AbcD")
 	fmt.Printf("res:%v, err:%v", res, err)
+	Delete(ctx, key, inApp)
 }
 
 func TestInRedis(t *testing.T) {
 	ctx := context.Background()
 	key := "test-key"
-	inApp := NewInRedis()
-	res, err := Cache(ctx, key, inApp, fn, "AbcD")
+	inRedis := NewInRedis()
+	res, err := Cache(ctx, key, inRedis, fn, "AbcD")
 	fmt.Printf("res:%v, err:%v", res, err)
+	Delete(ctx, key, inRedis)
 }
 
 func fn(s string) (string, error) {
