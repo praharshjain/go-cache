@@ -1,4 +1,4 @@
-module github.com/praharshjain/cache
+module github.com/praharshjain/go-cache
 
 go 1.18
 
