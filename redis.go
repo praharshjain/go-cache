@@ -45,7 +45,7 @@ func (i InRedis) Delete(ctx context.Context, key string) error {
 	return i.client.Del(ctx, key).Err()
 }
 
-func NewInRedis(host, port string) Strategy {
+func NewInRedis(host, port string) Storage {
 	s := InRedis{}
 	redisOpts := &redis.Options{Addr: host + ":" + port}
 	s.client = redis.NewClient(redisOpts)

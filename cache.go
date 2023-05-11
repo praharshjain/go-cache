@@ -15,8 +15,8 @@ var (
 	cacheConfig map[string]Config
 )
 
-// Strategy is a custom data type used to denote the caching strategy (i.e. where to cache).
-type Strategy interface {
+// Storage is an interface used to denote the caching store (i.e. where to cache).
+type Storage interface {
 	GetName() string
 	Read(ctx context.Context, key string, opType reflect.Type) (interface{}, error)
 	Write(ctx context.Context, key string, expiration time.Duration, res interface{}, err error) error
@@ -42,11 +42,11 @@ func isCachingEnabled(fnName string) (bool, time.Duration) {
 	return conf.Enabled, time.Duration(conf.TtlInSeconds) * time.Second
 }
 
-// Cache function takes a func as param along with its arguments, cache key and strategy.
-// It calls the passed fn with given args and caches the result with given strategy and returns the result.
+// Cache function takes a func as param along with its arguments, cache key and store.
+// It calls the passed fn with given args and caches the result with given storage and returns the result.
 // Only works with func having 2 return values, with the second one being an interface.
 // Caching will only work if it is enabled in config.
-func Cache(ctx context.Context, key string, strategy Strategy, fnc interface{}, args ...interface{}) (interface{}, error) {
+func Cache(ctx context.Context, key string, store Storage, fnc interface{}, args ...interface{}) (interface{}, error) {
 	fnType, err := fetchFuncType(fnc)
 	if err != nil {
 		return nil, err
@@ -68,25 +68,25 @@ func Cache(ctx context.Context, key string, strategy Strategy, fnc interface{}, 
 	if !enabled {
 		return invoke(fnc, args...)
 	}
-	if strategy == nil {
-		panic(fmt.Sprintf("invalid cache strategy:%v", strategy))
+	if store == nil {
+		panic(fmt.Sprintf("invalid cache store:%v", store))
 	}
 	opType := reflect.TypeOf(fnc).Out(0)
-	res, err := strategy.Read(ctx, key, opType)
+	res, err := store.Read(ctx, key, opType)
 	if err == nil {
 		return res, err
 	}
 	res, err = invoke(fnc, args...)
-	strategy.Write(ctx, key, expiration, res, err)
+	store.Write(ctx, key, expiration, res, err)
 	return res, err
 }
 
 // Delete func deletes the given cache key
-func Delete(ctx context.Context, key string, strategy Strategy) {
-	if strategy == nil {
-		panic(fmt.Sprintf("invalid cache strategy:%v", strategy))
+func Delete(ctx context.Context, key string, store Storage) {
+	if store == nil {
+		panic(fmt.Sprintf("invalid cache store:%v", store))
 	}
-	strategy.Delete(ctx, key)
+	store.Delete(ctx, key)
 }
 
 // checkArgIndexForError looks for all the values returned by ProcessResponse and checks if the index specified is error.

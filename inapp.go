@@ -18,7 +18,7 @@ type Item struct {
 	expiration time.Time
 }
 
-func NewInApp() Strategy {
+func NewInApp() Storage {
 	return InApp{sm: sync.Map{}}
 }
 
