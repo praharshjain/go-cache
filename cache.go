@@ -2,10 +2,8 @@ package cache
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -31,14 +29,8 @@ type Config struct {
 	Enabled      bool  `json:"enabled"`
 }
 
-func init() {
-	cacheConfig = make(map[string]Config)
-	b, err := ioutil.ReadFile("config.json")
-	if err != nil {
-		panic("config not found")
-	}
-	json.Unmarshal(b, &cacheConfig)
-	fmt.Printf("config :%v", cacheConfig)
+func Init(cfg map[string]Config) {
+	cacheConfig = cfg
 }
 
 // isCachingEnabled checks if a particular method is cacheable from config
@@ -74,7 +66,6 @@ func Cache(ctx context.Context, key string, strategy Strategy, fnc interface{}, 
 	}
 	enabled, expiration := isCachingEnabled(fnName)
 	if !enabled {
-		fmt.Printf("caching disabled for fn:%v", fnName)
 		return invoke(fnc, args...)
 	}
 	if strategy == nil {

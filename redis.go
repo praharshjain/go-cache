@@ -11,25 +11,8 @@ import (
 	"github.com/go-redis/redis/v9"
 )
 
-const (
-	host = "127.0.0.1"
-	port = "6379"
-)
-
-var (
-	redisClient *redis.Client
-)
-
-func init() {
-	redisOpts := &redis.Options{Addr: host + ":" + port}
-	redisClient = redis.NewClient(redisOpts)
-	_, err := redisClient.Ping(context.Background()).Result()
-	if err != nil {
-		panic(fmt.Sprintf("can't connect to redis err:%v", err))
-	}
-}
-
 type InRedis struct {
+	client *redis.Client
 }
 
 func (i InRedis) GetName() string {
@@ -37,7 +20,7 @@ func (i InRedis) GetName() string {
 }
 
 func (i InRedis) Read(ctx context.Context, key string, opType reflect.Type) (interface{}, error) {
-	val, err := redisClient.Get(ctx, key).Bytes()
+	val, err := i.client.Get(ctx, key).Bytes()
 	if err != nil {
 		return nil, err
 	}
@@ -55,13 +38,20 @@ func (i InRedis) Write(ctx context.Context, key string, expiration time.Duration
 	if err != nil {
 		return err
 	}
-	return redisClient.Set(ctx, key, b, expiration).Err()
+	return i.client.Set(ctx, key, b, expiration).Err()
 }
 
 func (i InRedis) Delete(ctx context.Context, key string) error {
-	return redisClient.Del(ctx, key).Err()
+	return i.client.Del(ctx, key).Err()
 }
 
-func NewInRedis() Strategy {
-	return InRedis{}
+func NewInRedis(host, port string) Strategy {
+	s := InRedis{}
+	redisOpts := &redis.Options{Addr: host + ":" + port}
+	s.client = redis.NewClient(redisOpts)
+	_, err := s.client.Ping(context.Background()).Result()
+	if err != nil {
+		panic(fmt.Sprintf("can't connect to redis err:%v", err))
+	}
+	return s
 }
